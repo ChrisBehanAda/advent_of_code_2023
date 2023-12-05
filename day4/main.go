@@ -15,6 +15,7 @@ func Solve() {
 	}
 	input := string(data)
 	part1(input)
+	part2(input)
 }
 
 type scratchCard struct {
@@ -30,7 +31,7 @@ func part1(input string) {
 		points := score(scratchCard)
 		totalPoints += points
 	}
-	fmt.Printf("Part 1 answer: %v", totalPoints)
+	fmt.Printf("Part 1 answer: %v\n", totalPoints)
 }
 
 func parseScratchCard(line string) scratchCard {
@@ -58,15 +59,7 @@ func parseScratchCard(line string) scratchCard {
 }
 
 func score(card scratchCard) int {
-	winningNums := 0
-	for _, p := range card.playerNumbers {
-		for _, w := range card.winningNumbers {
-			if p == w {
-				winningNums++
-				break
-			}
-		}
-	}
+	winningNums := winningNums(card)
 	score := 0
 	for i := 0; i < winningNums; i++ {
 		if score == 0 {
@@ -76,4 +69,50 @@ func score(card scratchCard) int {
 		}
 	}
 	return score
+}
+
+func winningNums(card scratchCard) int {
+	winningNums := 0
+	for _, p := range card.playerNumbers {
+		for _, w := range card.winningNumbers {
+			if p == w {
+				winningNums++
+				break
+			}
+		}
+	}
+	return winningNums
+}
+
+func part2(input string) {
+	lines := strings.Split(input, "\n")
+	cardMap := map[int][]scratchCard{}
+	for i, l := range lines {
+		card := parseScratchCard(l)
+		cardMap[i+1] = []scratchCard{card}
+	}
+
+	for i := 1; i <= len(cardMap); i++ {
+		cards := cardMap[i]
+		firstCard := cards[0]
+		matchCount := winningNums(firstCard)
+		copies := len(cards)
+		for k := 0; k < copies; k++ {
+			for j := i + 1; j <= i+matchCount; j++ {
+				cardToCopy := cardMap[j][0]
+				winningNumsCopy := make([]int, len(cardToCopy.winningNumbers))
+				copy(winningNumsCopy, cardToCopy.winningNumbers)
+				playerNumsCopy := make([]int, len(cardToCopy.playerNumbers))
+				copy(playerNumsCopy, cardToCopy.playerNumbers)
+				cardCopy := scratchCard{winningNumbers: winningNumsCopy, playerNumbers: playerNumsCopy}
+				cardMap[j] = append(cardMap[j], cardCopy)
+			}
+		}
+		// produce a single copy for the next matchCount number of cards
+	}
+	totalCards := 0
+	for _, cards := range cardMap {
+		totalCards += len(cards)
+	}
+	fmt.Printf("Part 2 answer: %v\n", totalCards)
 }
