@@ -6,6 +6,7 @@ import (
 	"github.com/ChrisBehanAda/advent_of_code_2023/day3"
 	"github.com/ChrisBehanAda/advent_of_code_2023/day5"
 	"github.com/ChrisBehanAda/advent_of_code_2023/day6"
+	"github.com/ChrisBehanAda/advent_of_code_2023/day7"
 )
 
 func main() {
@@ -15,4 +16,5 @@ func main() {
 	// day4.Solve()
 	day5.Solve()
 	day6.Solve()
+	day7.Solve()
 }
