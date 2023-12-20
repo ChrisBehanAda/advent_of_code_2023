@@ -24,6 +24,7 @@ func Solve() {
 	}
 	input := string(data)
 	part1(input)
+	part2(input)
 }
 
 type hand struct {
@@ -46,17 +47,30 @@ func getHands(lines []string) []hand {
 func part1(input string) {
 	lines := strings.Split(input, "\n")
 	hands := getHands(lines)
-	sort.Slice(hands, func(i, j int) bool {
-		return compareCards(hands[i], hands[j]) < 0
+	cardValues := map[rune]int{
+		'A': 13,
+		'K': 12,
+		'Q': 11,
+		'J': 10,
+		'T': 9,
+		'9': 8,
+		'8': 7,
+		'7': 6,
+		'6': 5,
+		'5': 4,
+		'4': 3,
+		'3': 2,
+		'2': 1,
+	}
+	sort.SliceStable(hands, func(i, j int) bool {
+		return compareCards(hands[i], hands[j], cardValues) < 0
 	})
 	total := 0
 	rank := len(hands)
-	idx := 0
-	for rank > 0 {
-		card := hands[idx]
-		total += (rank * card.bet)
-		rank--
-		idx++
+	for i := 0; i < rank; i++ {
+		card := hands[i]
+		amount := (rank - i) * card.bet
+		total += amount
 	}
 	fmt.Printf("Part 1 answer: %v\n", total)
 	// rank hands
@@ -149,24 +163,8 @@ func rankHand(cards string) int {
 	return highCard
 }
 
-func compareCardsOfSameRank(c1, c2 string) int {
-	cardValues := map[rune]int{
-		'A': 13,
-		'K': 12,
-		'Q': 11,
-		'J': 10,
-		'T': 9,
-		'9': 8,
-		'8': 7,
-		'7': 6,
-		'6': 5,
-		'5': 4,
-		'4': 3,
-		'3': 2,
-		'2': 1,
-	}
-
-	for i := 0; i < len(c1); i++ {
+func compareCardsOfSameRank(c1, c2 string, cardValues map[rune]int) int {
+	for i := 0; i < 5; i++ {
 		if cardValues[rune(c1[i])] > cardValues[rune(c2[i])] {
 			return -1
 		} else if cardValues[rune(c1[i])] < cardValues[rune(c2[i])] {
@@ -176,7 +174,7 @@ func compareCardsOfSameRank(c1, c2 string) int {
 	return 0
 }
 
-func compareCards(h1, h2 hand) int {
+func compareCards(h1, h2 hand, cardValues map[rune]int) int {
 	h1Rank := rankHand(h1.cards)
 	h2Rank := rankHand(h2.cards)
 	if h1Rank > h2Rank {
@@ -184,7 +182,8 @@ func compareCards(h1, h2 hand) int {
 	} else if h1Rank < h2Rank {
 		return 1
 	}
-	return compareCardsOfSameRank(h1.cards, h2.cards)
+
+	return compareCardsOfSameRank(h1.cards, h2.cards, cardValues)
 }
 
 func cardCounts(cards string) map[rune]int {
@@ -197,4 +196,137 @@ func cardCounts(cards string) map[rune]int {
 		}
 	}
 	return counts
+}
+
+func part2(input string) {
+	lines := strings.Split(input, "\n")
+	hands := getHands(lines)
+	cardValues := map[rune]int{
+		'A': 13,
+		'K': 12,
+		'Q': 11,
+		'T': 10,
+		'9': 9,
+		'8': 8,
+		'7': 7,
+		'6': 6,
+		'5': 5,
+		'4': 4,
+		'3': 3,
+		'2': 2,
+		'J': 1,
+	}
+	sort.SliceStable(hands, func(i, j int) bool {
+		return compareCards2(hands[i], hands[j], cardValues) < 0
+	})
+	total := 0
+	rank := len(hands)
+	for i := 0; i < rank; i++ {
+		card := hands[i]
+		amount := (rank - i) * card.bet
+		total += amount
+	}
+	fmt.Printf("Part 2 answer: %v\n", total)
+}
+
+func compareCards2(h1, h2 hand, cardValues map[rune]int) int {
+	h1Rank := rankHand2(h1.cards)
+	h2Rank := rankHand2(h2.cards)
+	if h1Rank > h2Rank {
+		return -1
+	} else if h1Rank < h2Rank {
+		return 1
+	}
+
+	return compareCardsOfSameRank(h1.cards, h2.cards, cardValues)
+}
+
+func hasFiveOfAKind2(cardCounts map[rune]int) bool {
+	jokerCount := cardCounts['J']
+	for card, count := range cardCounts {
+		if card != 'J' && count+jokerCount == 5 {
+			return true
+		}
+	}
+	return jokerCount == 5
+}
+
+func hasFourOfAKind2(cardCounts map[rune]int) bool {
+	jokerCount := cardCounts['J']
+	for card, count := range cardCounts {
+		if card != 'J' && count+jokerCount == 4 {
+			return true
+		}
+	}
+	return jokerCount == 4
+}
+
+func hasFullhouse2(cardCounts map[rune]int) bool {
+	jackCount := cardCounts['J']
+	threeOfAKind := false
+	pair := false
+	if jackCount == 0 {
+		for _, count := range cardCounts {
+			if count == 3 {
+				threeOfAKind = true
+			} else if count == 2 {
+				pair = true
+			}
+		}
+	} else {
+		var pair1 = '0'
+		for card, count := range cardCounts {
+			if pair1 == '0' && count == 2 {
+				pair1 = card
+				threeOfAKind = true
+			} else if card != pair1 && count == 2 {
+				pair = true
+			}
+		}
+	}
+
+	return threeOfAKind && pair
+}
+
+func hasThreeOfAKind2(cardCounts map[rune]int) bool {
+	jokerCount := cardCounts['J']
+	for card, count := range cardCounts {
+		if card != 'J' && count+jokerCount == 3 {
+			return true
+		}
+	}
+	return jokerCount == 3
+}
+
+func hasOnePair2(cardCounts map[rune]int) bool {
+	jokerCount := cardCounts['J']
+	for card, count := range cardCounts {
+		if card != 'J' && count+jokerCount == 2 {
+			return true
+		}
+	}
+	return jokerCount == 'J'
+}
+
+func rankHand2(cards string) int {
+	counts := cardCounts(cards)
+	if hasFiveOfAKind2(counts) {
+		return fiveOfAKind
+	}
+	if hasFourOfAKind2(counts) {
+		return fourOfAKind
+	}
+	if hasFullhouse2(counts) {
+		return fullHouse
+	}
+	if hasThreeOfAKind2(counts) {
+		return threeOfAKind
+	}
+	if hasTwoPair(counts) {
+		return twoPair
+	}
+	if hasOnePair2(counts) {
+		return onePair
+	}
+	return highCard
 }
