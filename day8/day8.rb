@@ -32,7 +32,37 @@ def part1()
     end
   end
 
-  puts steps
+  puts "Part 1 answer: #{steps}"
+end
+
+def get_starting_positions(positions)
+  positions.select {|p| p.end_with?("A")}
+end
+
+
+def steps_to_end(instructions, map, position)
+  steps = 0
+  instructions.each_char.cycle do |i|
+    position = map[position][i.to_sym()]
+    steps += 1
+    if position.end_with?("Z")
+      return steps
+    end
+  end
+end
+
+def part2()
+  input = get_input("input.txt")
+  instructions, map_lines = input.split("\n\n")
+  map = create_map(map_lines)
+  positions = get_starting_positions(map.keys)
+  steps = 0
+
+  counts = positions.map {|p| steps_to_end(instructions, map, p)}
+
+  ans = counts.reduce(:lcm)
+  puts "Part 2 answer: #{ans}"
 end
 
 part1()
+part2()
