@@ -23,11 +23,7 @@ end
 def extrapolate(history)
   diff_list = calculate_diffs(history)
   next_val = 0
-  (diff_list.length()-1).downto(0) do |i|
-    val = diff_list[i][-1].to_i()
-    next_val += val
-  end
-  return next_val
+  sum = (diff_list.length()-1).downto(0).reduce(0) { |acc, i| acc + diff_list[i][-1].to_i()}
 end
 
 def part1()
