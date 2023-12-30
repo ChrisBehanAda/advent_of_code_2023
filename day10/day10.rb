@@ -138,12 +138,13 @@ def is_enclosed?(grid, row, col)
 end
 
 def part2
-  input = get_input('day10/input.txt')
+  input = get_input('test_input.txt')
   grid = create_grid(input)
   start_row, start_col = find_start(grid)
   start = Pipe2.new(start_row, start_col, %w[north east south west])
   distances = bfs(start, grid)
   mark_non_loop_tiles(grid, distances)
+  print_grid(grid)
   enclosed_points = 0
   (0...grid.length).each do |row|
     (0...grid.first.length).each do |col|
@@ -153,5 +154,5 @@ def part2
   puts "Part 2 answer: #{enclosed_points}"
 end
 
-part1
+# part1
 part2
